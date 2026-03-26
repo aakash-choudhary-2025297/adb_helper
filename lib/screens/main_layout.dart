@@ -31,7 +31,13 @@ class _MainLayoutState extends State<MainLayout> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppState>().loadDevices();
+      final appState = context.read<AppState>();
+      appState.loadDevices().then((_) {
+        // Load packages after devices so tray menu shows apps immediately
+        if (appState.selectedDeviceId != null) {
+          appState.loadPackages();
+        }
+      });
     });
     if (Platform.isMacOS || Platform.isWindows) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -42,12 +48,18 @@ class _MainLayoutState extends State<MainLayout> {
             setState(() => _selectedIndex = sectionIndex);
           }
         };
+        TrayService.onSelectDevice = (deviceId) {
+          appState.selectDevice(deviceId);
+          // Reload packages for newly selected device
+          appState.loadPackages();
+        };
         TrayService.onClearCache = (package) =>
             appState.clearPackageCache(package);
         TrayService.onClearData = (package) =>
             appState.clearPackageData(package);
         TrayService.onUninstall = (package) =>
             appState.uninstallPackage(package);
+        TrayService.onRefresh = () => appState.refreshAll();
         await TrayService.setupTrayAndWindow();
       });
     }

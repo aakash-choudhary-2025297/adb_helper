@@ -72,12 +72,26 @@ class AppState extends ChangeNotifier {
     } finally {
       _isLoadingDevices = false;
       notifyListeners();
+      if (Platform.isMacOS || Platform.isWindows) {
+        TrayService.updateDevices(_devices, _selectedDeviceId);
+      }
     }
   }
 
   void selectDevice(String? deviceId) {
     _selectedDeviceId = deviceId;
     notifyListeners();
+    if (Platform.isMacOS || Platform.isWindows) {
+      TrayService.updateDevices(_devices, _selectedDeviceId);
+    }
+  }
+
+  /// Refreshes both devices and packages, then updates the tray menu.
+  Future<void> refreshAll() async {
+    await loadDevices();
+    if (_selectedDeviceId != null) {
+      await loadPackages();
+    }
   }
 
   // --- Shell ---
