@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../services/tray_service.dart';
 import '../state/app_state.dart';
 import 'apps_screen.dart';
 import 'devices_screen.dart';
@@ -30,6 +33,24 @@ class _MainLayoutState extends State<MainLayout> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppState>().loadDevices();
     });
+    if (Platform.isMacOS || Platform.isWindows) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final appState = context.read<AppState>();
+        TrayService.onOpenToSection = (int? sectionIndex) {
+          if (!mounted) return;
+          if (sectionIndex != null) {
+            setState(() => _selectedIndex = sectionIndex);
+          }
+        };
+        TrayService.onClearCache = (package) =>
+            appState.clearPackageCache(package);
+        TrayService.onClearData = (package) =>
+            appState.clearPackageData(package);
+        TrayService.onUninstall = (package) =>
+            appState.uninstallPackage(package);
+        await TrayService.setupTrayAndWindow();
+      });
+    }
   }
 
   @override

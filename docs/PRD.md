@@ -114,3 +114,4 @@ Implementation approach: use Flutter desktop packages for tray and window lifecy
 - [ ] No admin/root required  
 
 Use this doc as the single source of truth for scope when you start implementation.
+c

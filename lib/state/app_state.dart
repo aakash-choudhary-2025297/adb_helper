@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/device.dart';
 import '../services/adb_service.dart';
 import '../services/settings_service.dart';
+import '../services/tray_service.dart';
 
 class AppState extends ChangeNotifier {
   AppState(this._settings);
@@ -152,6 +155,9 @@ class AppState extends ChangeNotifier {
     } finally {
       _isLoadingPackages = false;
       notifyListeners();
+      if (Platform.isMacOS || Platform.isWindows) {
+        TrayService.updateMenu(_packages);
+      }
     }
   }
 

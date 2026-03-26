@@ -38,9 +38,21 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 48),
-          child: LinearProgressIndicator(
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            color: Theme.of(context).colorScheme.primary,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+
+              Image.asset(
+                'assets/images/app_icon.png',
+                height: 200,
+                width: 200,
+              ),
+
+              LinearProgressIndicator(
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
           ),
         ),
       ),
