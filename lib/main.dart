@@ -1,13 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/settings_service.dart';
+import 'services/tray_service.dart';
 import 'state/app_state.dart';
 import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isMacOS || Platform.isWindows) {
+    await TrayService.init();
+  }
   final prefs = await SharedPreferences.getInstance();
   final settings = SettingsService(prefs);
   runApp(AdbHelperApp(settings: settings));
