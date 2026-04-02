@@ -67,6 +67,7 @@ class TrayService {
     await windowManager.ensureInitialized();
     // Must be set before runApp so closing the window always hides instead of quitting.
     await windowManager.setPreventClose(true);
+    await windowManager.setTitle('ADB Helper');
     if (!_closeListenerAdded) {
       windowManager.addListener(_WindowCloseListener());
       _closeListenerAdded = true;
