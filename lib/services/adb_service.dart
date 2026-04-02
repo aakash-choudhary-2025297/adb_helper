@@ -23,8 +23,51 @@ class AdbService {
   /// Returns true if [adbPath] is valid (e.g. running `adb version` succeeds).
   static Future<bool> validatePath(String adbPath) async {
     if (adbPath.trim().isEmpty) return false;
-    final result = await run(adbPath.trim(), ['version']);
-    return result.exitCode == 0;
+    try {
+      final result = await run(adbPath.trim(), ['version']);
+      return result.exitCode == 0;
+    } on ProcessException {
+      return false;
+    }
+  }
+
+  /// Tries to find the adb binary when the saved path is just "adb" and the
+  /// GUI app's restricted PATH can't resolve it.
+  ///
+  /// Resolution order:
+  ///   1. User's login shell (`/bin/zsh -l -c 'which adb'`) — respects ~/.zshrc
+  ///   2. ~/Library/Android/sdk/platform-tools/adb  (Android Studio default)
+  ///   3. Common Homebrew / manual install locations
+  ///
+  /// Returns the resolved path, or null if adb cannot be found.
+  static Future<String?> detectAdbPath() async {
+    // 1. Ask the login shell — honours the user's PATH from ~/.zshrc / ~/.bash_profile
+    try {
+      final shell = Platform.isMacOS ? '/bin/zsh' : '/bin/bash';
+      final result = await Process.run(
+        shell,
+        ['-l', '-c', 'which adb'],
+        runInShell: false,
+        stdoutEncoding: utf8,
+        stderrEncoding: utf8,
+      );
+      if (result.exitCode == 0) {
+        final found = (result.stdout as String).trim();
+        if (found.isNotEmpty && await validatePath(found)) return found;
+      }
+    } catch (_) {}
+
+    // 2. Common fixed locations
+    final home = Platform.environment['HOME'] ?? '';
+    final candidates = [
+      if (home.isNotEmpty) '$home/Library/Android/sdk/platform-tools/adb',
+      '/opt/homebrew/bin/adb',
+      '/usr/local/bin/adb',
+    ];
+    for (final path in candidates) {
+      if (await validatePath(path)) return path;
+    }
+    return null;
   }
 
   /// Fetches connected devices. Uses `adb devices -l` for model info.
