@@ -56,7 +56,20 @@ class AppState extends ChangeNotifier {
     _devicesError = null;
     notifyListeners();
     try {
-      _devices = await AdbService.getDevices(_settings.adbPath);
+      String path = _settings.adbPath;
+      try {
+        _devices = await AdbService.getDevices(path);
+      } on ProcessException {
+        // The saved path (e.g. bare "adb") couldn't be found — likely because
+        // the GUI app doesn't inherit the shell PATH. Auto-detect and retry.
+        final detected = await AdbService.detectAdbPath();
+        if (detected != null) {
+          await _settings.setAdbPath(detected);
+          _devices = await AdbService.getDevices(detected);
+        } else {
+          rethrow;
+        }
+      }
       _devicesError = null;
       final online = _devices.where((d) => d.isOnline).toList();
       if (_selectedDeviceId != null && !online.any((d) => d.id == _selectedDeviceId)) {

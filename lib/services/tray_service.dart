@@ -79,8 +79,8 @@ class TrayService {
     await init();
 
     final iconPath = Platform.isWindows
-        ? 'assets/images/app_icon_tray.ico'
-        : 'assets/images/app_icon_tray.png';
+        ? 'assets/images/app_icon.ico'
+        : 'assets/images/app_icon.png';
     try {
       await trayManager.setIcon(iconPath);
     } catch (_) {
